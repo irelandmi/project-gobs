@@ -1,0 +1,28 @@
+[project]
+name = "gobs"
+version = "0.1.0"
+description = "Track all git repos in a single SQLite database"
+requires-python = ">=3.13"
+dependencies = []
+license = "MIT"
+readme = "README.md"
+authors = [{ name = "Isaac Ireland" }]
+keywords = ["git", "cli", "sqlite", "repository", "observatory"]
+classifiers = [
+	"Environment :: Console",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: MacOS",
+	"Programming Language :: Python :: 3.13",
+	"Topic :: Software Development :: Version Control :: Git",
+]
+
+[project.urls]
+Repository = "https://github.com/isaacireland/gobs"
+
+[project.scripts]
+gobs = "gobs.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
