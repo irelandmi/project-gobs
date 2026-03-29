@@ -441,7 +441,7 @@ def cmd_update(args):
 
 def cmd_status(args):
 	db = get_db()
-	rows = db.execute("""
+	query = """
 		SELECT r.name, r.current_branch, r.primary_language,
 			s.modified_count, s.untracked_count, s.ahead, s.behind, s.stash_count,
 			(SELECT max(date) FROM commits WHERE repo_id = r.id) AS last_commit,
@@ -451,7 +451,18 @@ def cmd_status(args):
 			SELECT id FROM status_snapshots WHERE repo_id = r.id
 			ORDER BY captured_at DESC LIMIT 1
 		)
-	""").fetchall()
+	"""
+	params = []
+	if args.tag:
+		placeholders = ", ".join("?" for _ in args.tag)
+		query += f"""
+		WHERE r.id IN (
+			SELECT repo_id FROM tags WHERE tag IN ({placeholders})
+			GROUP BY repo_id HAVING COUNT(DISTINCT tag) = ?
+		)"""
+		params.extend(args.tag)
+		params.append(len(args.tag))
+	rows = db.execute(query, params).fetchall()
 	db.close()
 
 	if not rows:
@@ -779,6 +790,8 @@ def main():
 	p_status.add_argument("--sort", "-s", default="edit",
 		choices=["edit", "commit", "name", "lang", "mod"],
 		help="sort by: edit (default), commit, name, lang, mod")
+	p_status.add_argument("--tag", "-t", action="append", metavar="TAG",
+		help="filter by tag (can be repeated)")
 
 	p_show = sub.add_parser("show", help="detailed view of a repo")
 	p_show.add_argument("repo", help="repo name or path")
