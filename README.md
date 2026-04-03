@@ -4,12 +4,12 @@ Track all your git repos in a single SQLite database. Get a bird's-eye view of w
 
 ```
 $ gobs status
-REPO                     BRANCH   LANG        MOD  UNT  +  -    STASH  LAST COMMIT  LAST EDIT
-───────────────────────  ───────  ──────────  ───  ───  ─  ───  ─────  ───────────  ─────────
-svelte_app               main     TypeScript  0    0    0  0    0      28m ago      36m ago
-rust-engine-rts          3d-test  Rust        14   5    0  0    1      7d ago       7d ago
-tenx_mode                main     Python      6    7    0  0    0      88d ago      74d ago
-firecracker              main     Rust        0    0    0  297  0      121d ago     120d ago
+REPO                     DIR          BRANCH   LANG        MOD  UNT  +  -    STASH  LAST COMMIT  LAST EDIT
+───────────────────────  ───────────  ───────  ──────────  ───  ───  ─  ───  ─────  ───────────  ─────────
+svelte_app               ~/projects   main     TypeScript  0    0    0  0    0      28m ago      36m ago
+rust-engine-rts          ~/projects   3d-test  Rust        14   5    0  0    1      7d ago       7d ago
+tenx_mode                ~/workspace  main     Python      6    7    0  0    0      88d ago      74d ago
+firecracker              ~/workspace  main     Rust        0    0    0  297  0      121d ago     120d ago
 ```
 
 ## Requirements
@@ -22,14 +22,14 @@ firecracker              main     Rust        0    0    0  297  0      121d ago 
 ## Install
 
 ```sh
-uv tool install git+https://github.com/isaacireland/gobs
+uv tool install git+https://github.com/irelandmi/project-gobs
 ```
 
 Or from a local clone:
 
 ```sh
-git clone https://github.com/isaacireland/gobs
-uv tool install ./gobs
+git clone https://github.com/irelandmi/project-gobs
+uv tool install ./project-gobs
 ```
 
 This installs `gobs` as a global command.
@@ -90,6 +90,12 @@ gobs status --sort commit   # last commit date
 gobs status --sort name     # alphabetical
 gobs status --sort lang     # by language
 gobs status --sort mod      # by modified file count
+```
+
+Filter by tag:
+
+```sh
+gobs status --tag active    # only repos tagged "active"
 ```
 
 ### Ad-hoc queries

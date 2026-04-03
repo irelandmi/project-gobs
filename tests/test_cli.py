@@ -203,6 +203,82 @@ class TestSnapshotCap(GobsTestCase):
 		db.close()
 
 
+class TestStatusTagFilter(GobsTestCase):
+	def _make_args(self, tag=None, sort="edit"):
+		return type("Args", (), {"tag": tag, "sort": sort})()
+
+	def test_no_tag_shows_all(self):
+		r1 = _make_git_repo(self.tmpdir, "repo-a")
+		r2 = _make_git_repo(self.tmpdir, "repo-b")
+		db = self._get_db()
+		cli.update_repo(db, r1)
+		cli.update_repo(db, r2)
+		db.close()
+
+		import io
+		from contextlib import redirect_stdout
+		f = io.StringIO()
+		with redirect_stdout(f):
+			cli.cmd_status(self._make_args())
+		out = f.getvalue()
+		self.assertIn("repo-a", out)
+		self.assertIn("repo-b", out)
+
+	def test_single_tag_filters(self):
+		r1 = _make_git_repo(self.tmpdir, "repo-a")
+		r2 = _make_git_repo(self.tmpdir, "repo-b")
+		db = self._get_db()
+		cli.update_repo(db, r1)
+		cli.update_repo(db, r2)
+		db.execute("INSERT INTO tags (repo_id, tag) VALUES (1, 'work')")
+		db.commit()
+		db.close()
+
+		import io
+		from contextlib import redirect_stdout
+		f = io.StringIO()
+		with redirect_stdout(f):
+			cli.cmd_status(self._make_args(tag=["work"]))
+		out = f.getvalue()
+		self.assertIn("repo-a", out)
+		self.assertNotIn("repo-b", out)
+
+	def test_multiple_tags_requires_all(self):
+		r1 = _make_git_repo(self.tmpdir, "repo-a")
+		r2 = _make_git_repo(self.tmpdir, "repo-b")
+		db = self._get_db()
+		cli.update_repo(db, r1)
+		cli.update_repo(db, r2)
+		db.execute("INSERT INTO tags (repo_id, tag) VALUES (1, 'work')")
+		db.execute("INSERT INTO tags (repo_id, tag) VALUES (1, 'active')")
+		db.execute("INSERT INTO tags (repo_id, tag) VALUES (2, 'work')")
+		db.commit()
+		db.close()
+
+		import io
+		from contextlib import redirect_stdout
+		f = io.StringIO()
+		with redirect_stdout(f):
+			cli.cmd_status(self._make_args(tag=["work", "active"]))
+		out = f.getvalue()
+		self.assertIn("repo-a", out)
+		self.assertNotIn("repo-b", out)
+
+	def test_unmatched_tag_shows_no_repos(self):
+		r1 = _make_git_repo(self.tmpdir, "repo-a")
+		db = self._get_db()
+		cli.update_repo(db, r1)
+		db.close()
+
+		import io
+		from contextlib import redirect_stdout
+		f = io.StringIO()
+		with redirect_stdout(f):
+			cli.cmd_status(self._make_args(tag=["nonexistent"]))
+		out = f.getvalue()
+		self.assertIn("no repositories tracked", out)
+
+
 class TestDbMigration(GobsTestCase):
 	def test_migration_moves_old_dir(self):
 		# Remove the new db dir that setUp created

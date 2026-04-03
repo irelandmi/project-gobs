@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/isaacireland/gobs"
+Repository = "https://github.com/irelandmi/project-gobs"
 
 [project.scripts]
 gobs = "gobs.cli:main"

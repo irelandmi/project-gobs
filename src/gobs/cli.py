@@ -442,7 +442,7 @@ def cmd_update(args):
 def cmd_status(args):
 	db = get_db()
 	query = """
-		SELECT r.name, r.current_branch, r.primary_language,
+		SELECT r.name, r.path, r.current_branch, r.primary_language,
 			s.modified_count, s.untracked_count, s.ahead, s.behind, s.stash_count,
 			(SELECT max(date) FROM commits WHERE repo_id = r.id) AS last_commit,
 			r.last_edited
@@ -480,13 +480,14 @@ def cmd_status(args):
 	reverse = args.sort != "name" and args.sort != "lang"
 	sorted_rows = sorted(rows, key=key_fn, reverse=reverse)
 
-	headers = ["REPO", "BRANCH", "LANG", "MOD", "UNT", "+", "-", "STASH", "LAST COMMIT", "LAST EDIT"]
+	headers = ["REPO", "DIR", "BRANCH", "LANG", "MOD", "UNT", "+", "-", "STASH", "LAST COMMIT", "LAST EDIT"]
 	table = []
 	for r in sorted_rows:
 		last_commit = _relative_time(r["last_commit"]) if r["last_commit"] else "never"
 		last_edited = _relative_time(r["last_edited"]) if r["last_edited"] else "never"
 		table.append([
 			r["name"] or "",
+			os.path.basename(os.path.dirname(r["path"])) if r["path"] else "",
 			r["current_branch"] or "",
 			r["primary_language"] or "",
 			str(r["modified_count"] or 0),
@@ -779,7 +780,7 @@ def main():
 	sub = parser.add_subparsers(dest="command")
 
 	p_scan = sub.add_parser("scan", help="discover and register git repos")
-	p_scan.add_argument("paths", nargs="*", help="directories to scan (default: ~/workspace)")
+	p_scan.add_argument("paths", nargs="*", help="directories to scan (default: ~ or $GOBS_WORKSPACE)")
 	p_scan.add_argument("--quiet", "-q", action="store_true")
 
 	p_update = sub.add_parser("update", help="refresh status for one repo")
